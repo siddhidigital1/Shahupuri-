@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shahupuri Ganesh Mandal - Karyakarta Collector</title>
+    <style>
+        :root { --primary: #10b981; --primary-dark: #059669; --bg: #f3f4f6; --card-bg: #ffffff; --text: #1f2937; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; justify-content: center; }
+        .main-wrapper { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px; padding-bottom: 40px; }
+        .container { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2, h3 { text-align: center; color: var(--primary-dark); margin-top: 0; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+        button { width: 100%; background-color: var(--primary); color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+        .receipt-preview { margin-top: 20px; padding: 15px; border: 2px dashed #059669; border-radius: 8px; background: #fffdf9; display: none; text-align: center; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; text-align: left; }
+        .whatsapp-btn { background-color: #25d366; margin-top: 15px; width: 100%; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="main-wrapper">
+    <div class="container">
+        <h2>🙏 Shahupuri Ganesh Mandal 🙏</h2>
+        <h3>Vargani Collection Portal</h3>
+        <div class="form-group"><label>Receipt Number (Auto)</label><input type="text" id="receiptNo" readonly style="background-color: #f9fafb; color: #6b7280;"></div>
+        <div class="form-group"><label>Donor Name (नाव)</label><input type="text" id="donorName" placeholder="Enter donor's full name"></div>
+        <div class="form-group"><label>WhatsApp Number (with country code)</label><input type="tel" id="mobile" placeholder="e.g., 919876543210" value="91"></div>
+        <div class="form-group"><label>Amount (रुपये)</label><input type="number" id="amount" placeholder="Enter amount"></div>
+        <div class="form-group"><label>Payment Mode</label><select id="paymentMode"><option value="Cash">Cash (रोख)</option><option value="Bank/UPI">Bank / UPI (ऑनलाइन)</option></select></div>
+        <div class="form-group"><label>Collector Name</label><input type="text" id="collector" placeholder="Volunteer name"></div>
+        <button onclick="generateReceipt()">Generate & Save Receipt</button>
+        
+        <div class="receipt-preview" id="receiptCard">
+            <!-- Ganesha Logo Image (Make sure logo.png is uploaded in your GitHub repo) -->
+            <img src="logo.png" alt="Ganesha Logo" style="width: 70px; height: 70px; object-fit: contain; margin-bottom: 5px;">
+            
+            <h3 style="margin-bottom: 5px; color: #b45309;">शाहूपुरी गणेश मंडळ</h3>
+            <p style="font-size: 11px; color: #6b7280; margin-top: 0;">वर्गणी पावती (2026)</p>
+            <hr style="border:0; border-top:1px dashed #d1d5db; margin:10px 0;">
+            <div class="receipt-row"><span>Receipt No:</span> <strong id="pReceiptNo"></strong></div>
+            <div class="receipt-row"><span>Date:</span> <strong id="pDate"></strong></div>
+            <div class="receipt-row"><span>Donor Name:</span> <strong id="pName"></strong></div>
+            <div class="receipt-row"><span>Amount:</span> <strong id="pAmount"></strong></div>
+            <div class="receipt-row"><span>Mode:</span> <strong id="pMode"></strong></div>
+            <div class="receipt-row"><span>Collected By:</span> <strong id="pCollector"></strong></div>
+            <hr style="border:0; border-top:1px dashed #d1d5db; margin:10px 0;">
+            <p style="text-align:center; font-size:11px; color:#4b5563; margin:4px 0;">आपल्या अमूल्य सहकार्याबद्दल धन्यवाद! 🌸</p>
+            <button class="whatsapp-btn" onclick="sendWhatsApp()">📲 Send via WhatsApp</button>
+        </div>
+    </div>
+</div>
+<script>
+    let currentData = {};
+    let transactions = JSON.parse(localStorage.getItem('mandal_transactions')) || [];
+    let receiptSeq = localStorage.getItem('mandal_last_receipt') ? parseInt(localStorage.getItem('mandal_last_receipt')) + 1 : 1;
+    document.getElementById('receiptNo').value = "SGM-2026-" + String(receiptSeq).padStart(3, '0');
+    
+    function generateReceipt() {
+        const receiptNo = document.getElementById('receiptNo').value;
+        const donorName = document.getElementById('donorName').value;
+        const mobile = document.getElementById('mobile').value;
+        const amount = parseFloat(document.getElementById('amount').value);
+        const paymentMode = document.getElementById('paymentMode').value;
+        const collector = document.getElementById('collector').value || 'Self';
+        const date = new Date().toLocaleDateString();
+        
+        if (!donorName || isNaN(amount) || !mobile) { alert('Fill Name, Mobile, and Amount!'); return; }
+        
+        const tx = { receiptNo, date, donorName, mobile, amount, paymentMode, collector };
+        transactions.push(tx);
+        localStorage.setItem('mandal_transactions', JSON.stringify(transactions));
+        localStorage.setItem('mandal_last_receipt', receiptSeq);
+        
+        document.getElementById('pReceiptNo').innerText = receiptNo;
+        document.getElementById('pDate').innerText = date;
+        document.getElementById('pName').innerText = donorName;
+        document.getElementById('pAmount').innerText = '₹' + amount;
+        document.getElementById('pMode').innerText = paymentMode;
+        document.getElementById('pCollector').innerText = collector;
+        
+        currentData = tx;
+        document.getElementById('receiptCard').style.display = 'block';
+        
+        receiptSeq++;
+        document.getElementById('receiptNo').value = "SGM-2026-" + String(receiptSeq).padStart(3, '0');
+        document.getElementById('donorName').value = ''; 
+        document.getElementById('amount').value = '';
+    }
+    
+    function sendWhatsApp() {
+        const text = `🛕 *शाहूपुरी गणेश मंडळ* 🛕%0A----------------------------------%0A*✦ वर्गणी पावती (2026) ✦*%0A----------------------------------%0A*पावती क्र.:* ${currentData.receiptNo}%0A*दिनांक:* ${currentData.date}%0A*नाव:* ${currentData.donorName}%0A*रक्कम:* ₹${currentData.amount}%0A*पेमेंट प्रकार:* ${currentData.paymentMode}%0A*संकलनकर्ता:* ${currentData.collector}%0A----------------------------------%0Aआपल्या अमूल्य सहकार्याबद्दल धन्यवाद! 🌸%0A*गणपती बाप्पा मोरया! मोरिया रे बाप्पा मोरया!*`;
+        window.open(`https://wa.me/${currentData.mobile}?text=${text}`, '_blank');
+    }
+</script>
+</body>
+</html>
